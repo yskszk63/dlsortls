@@ -8,6 +8,12 @@ Launch `deno lsp` or `typescript-language-server`.
 ## Install
 
 ```
+paru -S dlsortls-bin
+```
+
+or
+
+```
 go install github.com/yskszk63/dlsortls@latest
 ```
 
