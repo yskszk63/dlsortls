@@ -1,5 +1,7 @@
 # dlsortls
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/yskszk63/dlsortls)](https://goreportcard.com/report/github.com/yskszk63/dlsortls)
+
 Launch `deno lsp` or `typescript-language-server`.
 
 - If `package.json` exists -> launch typescript-language-server.
