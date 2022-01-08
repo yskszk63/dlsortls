@@ -5,6 +5,12 @@ Launch `deno lsp` or `typescript-language-server`.
 If `package.json` exists -> launch typescript-language-server.
 If `deno.json` exists -> launch deno lsp.
 
+## Install
+
+```
+go install github.com/yskszk63/dlsortss@latest
+```
+
 ## Example
 
 nvim-lspconfig
