@@ -11,6 +11,10 @@ Launch `deno lsp` or `typescript-language-server`.
 go install github.com/yskszk63/dlsortls@latest
 ```
 
+or
+
+[Download](https://github.com/yskszk63/dlsortls/releases/latest)
+
 ## Example
 
 nvim-lspconfig
