@@ -7,16 +7,46 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"fmt"
+	"path"
 )
 
-func exists(path string) (bool, error) {
-	if _, err := os.Stat(path); err == nil {
-		return true, nil
-	} else if errors.Is(err, fs.ErrNotExist) {
-		return false, nil
-	} else {
-		return false, err
+type lspKind uint8
+
+const (
+	deno lspKind = iota + 1
+	typescript
+)
+
+func exists(cwd string, fnames ...string) (bool, error) {
+	for _, f := range fnames {
+		p := path.Join(cwd, f)
+		if _, err := os.Stat(p); err == nil {
+			return true, nil
+		} else if !errors.Is(err, fs.ErrNotExist) {
+			return false, err
+		}
 	}
+
+	return false, nil
+}
+
+func detect(cwd string) (*lspKind, error) {
+	if exists, err := exists(cwd, "package.json", "jsconfig.json"); err != nil {
+		return nil, err
+	} else if exists {
+		r := typescript
+		return &r, nil
+	}
+
+	if exists, err := exists(cwd, "deno.json", "deno.jsonc"); err != nil {
+		return nil, err
+	} else if exists {
+		r := deno
+		return &r, nil
+	}
+
+	return nil, fmt.Errorf("failed to detect to launch `deno lsp` or `typescript-language-server`.")
 }
 
 func runTsserver() error {
@@ -43,24 +73,37 @@ func runDenoLsp() error {
 	return syscall.Exec(bin, args, env)
 }
 
+func execProg(args []string) error {
+	bin := args[0]
+	bin, err := exec.LookPath(bin)
+	if err != nil {
+		return err
+	}
+
+	env := os.Environ()
+	return syscall.Exec(bin, args, env)
+}
+
 func main() {
-	if exists, err := exists("package.json"); err != nil {
+	cwd, err := os.Getwd()
+	if err != nil {
 		log.Fatal(err)
-	} else if exists {
-		if err := runTsserver(); err != nil {
-			log.Fatal(err)
-		}
-		return
 	}
 
-	if exists, err := exists("deno.json"); err != nil {
+	kind, err := detect(cwd)
+	if err != nil {
 		log.Fatal(err)
-	} else if exists {
-		if err := runDenoLsp(); err != nil {
-			log.Fatal(err)
-		}
-		return
 	}
 
-	log.Fatal("failed to detect launch `deno lsp` or `typescript-language-server`.")
+	var args []string
+	switch *kind {
+	case deno:
+		args = []string{"deno", "lsp"}
+	case typescript:
+		args = []string{"typescript-language-server", "--stdio"}
+	}
+
+	if err := execProg(args); err != nil {
+		log.Fatal(err)
+	}
 }
