@@ -56,7 +56,9 @@ func main() {
 	if exists, err := exists("deno.json"); err != nil {
 		log.Fatal(err)
 	} else if exists {
-		runDenoLsp()
+		if err := runDenoLsp(); err != nil {
+			log.Fatal(err)
+		}
 		return
 	}
 
