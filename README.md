@@ -16,8 +16,8 @@ go install github.com/yskszk63/dlsortls@latest
 nvim-lspconfig
 
 ```lua
-if not require'lspconfig.configs'.dlsortss then
-  require'lspconfig.configs'.dlsortss = {
+if not require'lspconfig.configs'.dlsortls then
+  require'lspconfig.configs'.dlsortls = {
     default_config = {
       init_options = {
         enable = true,
@@ -43,7 +43,7 @@ if not require'lspconfig.configs'.dlsortss then
     }
   }
 end
-nvim_lsp.dlsortss.setup { }
+nvim_lsp.dlsortls.setup { }
 ```
 
 ## License
