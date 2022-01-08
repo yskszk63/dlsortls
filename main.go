@@ -20,23 +20,25 @@ func exists(path string) (bool, error) {
 }
 
 func runTsserver() error {
-	bin, err := exec.LookPath("tsserver")
+	binName := "typescript-language-server"
+	bin, err := exec.LookPath(binName)
 	if err != nil {
 		return err
 	}
 
-	args := []string{"tsserver"}
+	args := []string{binName, "--stdio"}
 	env := os.Environ()
 	return syscall.Exec(bin, args, env)
 }
 
 func runDenoLsp() error {
-	bin, err := exec.LookPath("deno")
+	binName := "deno"
+	bin, err := exec.LookPath(binName)
 	if err != nil {
 		return err
 	}
 
-	args := []string{"deno", "lsp"}
+	args := []string{binName, "lsp"}
 	env := os.Environ()
 	return syscall.Exec(bin, args, env)
 }
@@ -58,5 +60,5 @@ func main() {
 		return
 	}
 
-	log.Fatal("failed to detect launch `deno lsp` or `tsserver`.")
+	log.Fatal("failed to detect launch `deno lsp` or `typescript-language-server`.")
 }
