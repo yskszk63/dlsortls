@@ -1,4 +1,4 @@
-# dlsortss
+# dlsortls
 
 Launch `deno lsp` or `typescript-language-server`.
 
@@ -8,7 +8,7 @@ Launch `deno lsp` or `typescript-language-server`.
 ## Install
 
 ```
-go install github.com/yskszk63/dlsortss@latest
+go install github.com/yskszk63/dlsortls@latest
 ```
 
 ## Example
@@ -25,7 +25,7 @@ if not require'lspconfig.configs'.dlsortss then
         unstable = false,
         hostInfo = 'neovim',
       },
-      cmd = { "dlsortss" },
+      cmd = { "dlsortls" },
       filetypes = {
         'javascript',
         'javascriptreact',
