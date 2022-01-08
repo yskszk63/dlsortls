@@ -7,21 +7,30 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
-	"fmt"
-	"path"
 )
 
 type lspKind uint8
 
 const (
-	deno lspKind = iota + 1
+	unknown lspKind = iota + 1
+	deno
 	typescript
 )
 
-func exists(cwd string, fnames ...string) (bool, error) {
-	for _, f := range fnames {
-		p := path.Join(cwd, f)
-		if _, err := os.Stat(p); err == nil {
+func (v lspKind) cmd() []string {
+	switch v {
+	case deno:
+		return []string{"deno", "lsp"}
+	case typescript:
+		return []string{"typescript-language-server", "--stdio"}
+	default:
+		return nil
+	}
+}
+
+func exists(f fs.FS, fnames ...string) (bool, error) {
+	for _, fname := range fnames {
+		if _, err := fs.Stat(f, fname); err == nil {
 			return true, nil
 		} else if !errors.Is(err, fs.ErrNotExist) {
 			return false, err
@@ -31,46 +40,20 @@ func exists(cwd string, fnames ...string) (bool, error) {
 	return false, nil
 }
 
-func detect(cwd string) (*lspKind, error) {
-	if exists, err := exists(cwd, "package.json", "jsconfig.json"); err != nil {
-		return nil, err
+func detect(f fs.FS) (lspKind, error) {
+	if exists, err := exists(f, "package.json", "jsconfig.json"); err != nil {
+		return unknown, err
 	} else if exists {
-		r := typescript
-		return &r, nil
+		return typescript, nil
 	}
 
-	if exists, err := exists(cwd, "deno.json", "deno.jsonc"); err != nil {
-		return nil, err
+	if exists, err := exists(f, "deno.json", "deno.jsonc"); err != nil {
+		return unknown, err
 	} else if exists {
-		r := deno
-		return &r, nil
+		return deno, nil
 	}
 
-	return nil, fmt.Errorf("failed to detect to launch `deno lsp` or `typescript-language-server`.")
-}
-
-func runTsserver() error {
-	binName := "typescript-language-server"
-	bin, err := exec.LookPath(binName)
-	if err != nil {
-		return err
-	}
-
-	args := []string{binName, "--stdio"}
-	env := os.Environ()
-	return syscall.Exec(bin, args, env)
-}
-
-func runDenoLsp() error {
-	binName := "deno"
-	bin, err := exec.LookPath(binName)
-	if err != nil {
-		return err
-	}
-
-	args := []string{binName, "lsp"}
-	env := os.Environ()
-	return syscall.Exec(bin, args, env)
+	return unknown, nil
 }
 
 func execProg(args []string) error {
@@ -85,25 +68,17 @@ func execProg(args []string) error {
 }
 
 func main() {
-	cwd, err := os.Getwd()
+	fs := os.DirFS(".")
+	kind, err := detect(fs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	kind, err := detect(cwd)
-	if err != nil {
-		log.Fatal(err)
+	if kind == unknown {
+		log.Fatal("Couldn't decide whether to launch `deno lsp` or `typescript-language-server`.")
 	}
 
-	var args []string
-	switch *kind {
-	case deno:
-		args = []string{"deno", "lsp"}
-	case typescript:
-		args = []string{"typescript-language-server", "--stdio"}
-	}
-
-	if err := execProg(args); err != nil {
+	if err := execProg(kind.cmd()); err != nil {
 		log.Fatal(err)
 	}
 }
